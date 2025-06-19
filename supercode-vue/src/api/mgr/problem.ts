@@ -60,3 +60,13 @@ export interface SimpleProblemVO {
 export function getProblems() {
     return request.get<ApiResponse<SimpleProblemVO[]>>(`api/v1/problem`)
 }
+
+//提交代码
+export function submitCode(data: {
+    problemId: string
+    lang: string
+    code: string
+}) {
+    const { problemId, ...rest } = data
+    return request.post(`/api/v1/problem/${problemId}`, rest)
+}

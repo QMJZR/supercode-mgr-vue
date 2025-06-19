@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useRoute } from 'vue-router'
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'
+import {getOneProblem, StdioVO, submitCode as submitCodeApi} from '../api/mgr/problem'
 
-const router = useRouter();
-
+const router = useRouter()
 const route = useRoute()
-const problemId = ref(route.params.id as string)
+const problemId = ref(route.params.problemId as string)
 
 // 题目数据
 const problemData = ref({
@@ -15,13 +13,14 @@ const problemData = ref({
   description: '',
   time_limit: 0,
   memory_limit: 0,
-  example_stdio: [] as string[][],
+  output_limit: 0,
+  example_stdio: [] as StdioVO[],
   constraints: [] as string[]
 })
 
 // 用户代码
 const userCode = ref('')
-const lang = ref('cpp')
+const lang = ref('C') // 默认设置为 C
 const isSubmitting = ref(false)
 const lastSubmitTime = ref(0)
 const submitStatus = ref({
@@ -29,27 +28,34 @@ const submitStatus = ref({
   type: '' // 'success', 'error', 'info'
 })
 
-// 支持的语言列表
+// 只保留支持的语言列表
 const languages = [
-  { id: 'c', name: 'C' },
-  { id: 'cpp', name: 'C++' },
-  { id: 'java', name: 'Java' },
-  { id: 'python', name: 'Python' },
-  { id: 'javascript', name: 'JavaScript' }
+  { id: 'C', name: 'C' },
+  { id: 'C++', name: 'C++' },
+  { id: 'Java', name: 'Java' }
 ]
 
 // 获取题目详情
 const fetchProblem = async () => {
+  console.log('开始请求题目，problemId:', problemId.value)
   try {
-    const response = await axios.get(`/api/problem/${problemId.value}`)
-    problemData.value = {
-      ...response.data.data,
-      // 将约束条件转换为数组
-      constraints: [
-        `时间限制: ${response.data.data.time_limit} 秒`,
-        `内存限制: ${Math.floor(response.data.data.memory_limit / 1024)} MB`,
-        `输出限制: ${response.data.data.output_limit} 字节`
-      ]
+    const response = await getOneProblem(problemId.value)
+    const data = response.data.data
+
+    if (data) {
+      problemData.value = {
+        title: data.title,
+        description: data.description,
+        time_limit: data.timeLimit,
+        memory_limit: data.memoryLimit,
+        output_limit: data.outputLimit,
+        example_stdio: data.exampleStdio,
+        constraints: [
+          `时间限制: ${data.timeLimit} 秒`,
+          `内存限制: ${Math.floor(data.memoryLimit / 1024)} MB`,
+          `输出限制: ${data.outputLimit} 字节`
+        ]
+      }
     }
   } catch (error) {
     console.error('获取题目失败:', error)
@@ -86,29 +92,24 @@ const submitCode = async () => {
   submitStatus.value = { message: '提交中...', type: 'info' }
 
   try {
-    const response = await axios.post(`/api/problem/${problemId.value}`, {
+    const response = await submitCodeApi({
+      problemId: problemId.value,
       lang: lang.value,
       code: userCode.value
     })
+    console.log('当前语言:', lang.value)
+    console.log('提交返回数据:', response.data)
 
     submitStatus.value = {
       message: response.data.msg || '提交成功',
-      type: 'success'
+      type: response.data.code === 200 ? 'success' : 'error'
     }
 
-    // 清空代码区域
     userCode.value = ''
   } catch (error: any) {
-    if (error.response && error.response.status === 403) {
-      submitStatus.value = {
-        message: '提交过于频繁，请稍后重试',
-        type: 'error'
-      }
-    } else {
-      submitStatus.value = {
-        message: error.response?.data?.msg || '提交失败，请稍后重试',
-        type: 'error'
-      }
+    submitStatus.value = {
+      message: error?.response?.data?.msg || '提交失败，请稍后重试',
+      type: 'error'
     }
   } finally {
     isSubmitting.value = false
@@ -118,21 +119,17 @@ const submitCode = async () => {
 // 初始化默认代码模板
 const initCodeTemplate = () => {
   switch (lang.value) {
-    case 'c':
+    case 'C':
       userCode.value = `#include <stdio.h>\n\nint main() {\n    // 请在此编写你的代码\n    return 0;\n}`
       break
-    case 'cpp':
+    case 'C++':
       userCode.value = `#include <iostream>\nusing namespace std;\n\nint main() {\n    // 请在此编写你的代码\n    return 0;\n}`
       break
-    case 'java':
+    case 'Java':
       userCode.value = `public class Main {\n    public static void main(String[] args) {\n        // 请在此编写你的代码\n    }\n}`
       break
-    case 'python':
-      userCode.value = `# 请在此编写你的代码`
-      break
-    case 'javascript':
-      userCode.value = `// 请在此编写你的代码`
-      break
+    default:
+      userCode.value = '// 不支持的语言'
   }
 }
 
@@ -146,6 +143,8 @@ onMounted(() => {
   initCodeTemplate()
 })
 </script>
+
+
 
 <template>
   <div class="code-eval-container">
@@ -168,18 +167,15 @@ onMounted(() => {
           <p>{{ problemData.description }}</p>
         </div>
 
-        <div class="examples-section">
-          <h2>示例:</h2>
-          <div v-for="(example, index) in problemData.example_stdio" :key="index" class="example">
-            <div class="example-input">
-              <strong>输入:</strong> <pre>{{ example[0] }}</pre>
-            </div>
-            <div class="example-output">
-              <strong>输出:</strong> <pre>{{ example[1] }}</pre>
-            </div>
-            <div v-if="example[2]" class="example-explanation">
-              <strong>解释:</strong> {{ example[2] }}
-            </div>
+        <div v-for="(example, index) in problemData.example_stdio" :key="index" class="example">
+          <div class="example-input">
+            <strong>输入:</strong> <pre>{{ example.stdin }}</pre>
+          </div>
+          <div class="example-output">
+            <strong>输出:</strong> <pre>{{ example.stdout }}</pre>
+          </div>
+          <div v-if="example.stderr" class="example-explanation">
+            <strong>解释:</strong> {{ example.stderr }}
           </div>
         </div>
 
