@@ -57,7 +57,6 @@ async function handleQueryProblem() {
     if (res.data.code === 200 && res.data.data) {
       const data = res.data.data;
 
-      // 处理 outputLimit 等数值字段，保证它们不是 null 或 undefined
       data.outputLimit = data.outputLimit ?? 0;
       data.processLimit = data.processLimit ?? 0;
       data.timeLimit = data.timeLimit ?? 1;

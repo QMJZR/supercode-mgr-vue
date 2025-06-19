@@ -43,7 +43,7 @@ const handleCollapseChange = async () => {
         <el-button type="success" @click="router.push('/manage-problem')">题目管理</el-button>
       </div>
 
-      <!-- 可折叠的题目列表 -->
+      <!-- 可折叠的题目列表，会跳转到答题界面 -->
       <el-collapse @change="handleCollapseChange">
         <el-collapse-item title="题目列表" name="1">
           <div v-if="problems.length === 0">暂无题目</div>

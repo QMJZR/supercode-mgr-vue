@@ -39,7 +39,7 @@ const submitLoginForm = (formEl: FormInstance | null) => {
 <template>
   <el-main class="main-frame bg-gradient">
     <el-card class="login-card">
-      <h1 class="title">番茄书店</h1>
+      <h1 class="title">Super-Code</h1>
       <el-form
           ref="loginRuleFormRef"
           :model="loginForm"
@@ -75,7 +75,7 @@ const submitLoginForm = (formEl: FormInstance | null) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem; /* 上下左右都有空隙 */
+  padding: 2rem;
 }
 
 .bg-gradient {
@@ -108,7 +108,7 @@ const submitLoginForm = (formEl: FormInstance | null) => {
 
 .btn-item {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-top: 1rem;
 }
 
