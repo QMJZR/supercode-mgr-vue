@@ -107,9 +107,10 @@ const submitLoginForm = (formEl: FormInstance | null) => {
 }
 
 .btn-item {
-  display: flex;
+  display: grid;
   justify-content: center;
   margin-top: 1rem;
+
 }
 
 .login-btn {

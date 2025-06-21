@@ -70,3 +70,19 @@ export function submitCode(data: {
     const { problemId, ...rest } = data
     return request.post(`/api/v1/problem/${problemId}`, rest)
 }
+
+export interface SimpleSubmissionResultVO {
+    submitId: string;
+    problemId: string;
+    lang: string;
+    time?: number;
+    memory?: number;
+    result: string;
+    submissionTime: string;
+    score?: number;
+}
+
+// 获取当前用户的所有提交记录
+export function getMySubmissions() {
+    return request.get<ApiResponse<SimpleSubmissionResultVO[]>>('/api/v1/problem/submit');
+}

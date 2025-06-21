@@ -81,4 +81,7 @@ export interface RetUserVO {
 export function getAllUsers() {
     return request.get<ApiResponse<RetUserVO[]>>(`${MGR_USER_MODULE}/getUsers`);
 }
-
+//重置密码，默认重置为用户名
+export function resetUserPassword(username: string) {
+    return request.post(`${MGR_USER_MODULE}/resetPassword/${username}`);
+}

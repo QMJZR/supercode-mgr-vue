@@ -9,6 +9,7 @@ import {
   type UserInfo,
   changeUserRole,
   getAllUsers, RetUserVO, // 新增
+  resetUserPassword
 } from '../api/mgr/user';
 import { useRouter } from 'vue-router';
 
@@ -147,6 +148,30 @@ const handleChangeUserRole = async () => {
     ElMessage.error('请求异常，请稍后重试');
   }
 };
+
+const usernameToReset = ref('');
+
+const handleResetPasswordByInput = async () => {
+  const username = usernameToReset.value.trim();
+  if (!username) {
+    ElMessage.warning('请输入用户名');
+    return;
+  }
+
+  try {
+    const res = await resetUserPassword(username);
+    if (res.data.code === 200) {
+      ElMessage.success(`用户 ${username} 密码重置成功`);
+      usernameToReset.value = '';
+    } else {
+      ElMessage.error(res.data.msg || '密码重置失败');
+    }
+  } catch (e) {
+    ElMessage.error('请求失败，请稍后再试');
+  }
+};
+
+
 </script>
 
 <template>
@@ -243,5 +268,17 @@ const handleChangeUserRole = async () => {
         <el-button type="primary" @click="handleChangeUserRole">改变职能</el-button>
       </el-form-item>
     </el-form>
+
+    <el-divider />
+
+    <el-form inline autocomplete="off">
+      <el-form-item label="要重置密码的用户名">
+        <el-input v-model="usernameToReset" placeholder="输入用户名" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="danger" @click="handleResetPasswordByInput">重置密码</el-button>
+      </el-form-item>
+    </el-form>
+
   </div>
 </template>

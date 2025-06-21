@@ -4,7 +4,7 @@ import AdminView from "../views/adminView.vue";     // 管理入口页面
 import ManageUser from "../views/manageUser.vue";   // 用户管理页面
 import ManageProblem from "../views/manageProblem.vue";
 import CodeView from "../views/CodeView.vue"; // 题目管理页面
-
+import AllSubmit from '../views/allSubmit.vue';
 export const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -33,6 +33,11 @@ export const router = createRouter({
             name: "Code",
             component: CodeView,
             props: true
+        },
+        {
+            path: '/all-submit',
+            name: 'AllSubmit',
+            component: AllSubmit,
         },
     ],
 });
